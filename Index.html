@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Futebol Mobile Live</title>
+    <style>
+        /* Reset total para tela cheia */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body, html { height: 100%; width: 100%; overflow: hidden; background: #000; font-family: sans-serif; }
+
+        /* Fundo Animado (Pixabay 99952) */
+        .video-fundo {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            object-fit: cover; z-index: -1;
+            filter: brightness(0.3);
+        }
+
+        /* Container que centraliza TUDO no meio da tela[span_1](start_span)[span_1](end_span) */
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center; /* Centraliza verticalmente */
+            height: 100vh;
+            width: 100vw;
+            padding: 10px;
+        }
+
+        /* Menu de Canais (Botões) */
+        #menu-canais {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+            width: 100%;
+            max-width: 500px; /* Limita largura no PC para parecer celular */
+        }
+
+        .btn-canal {
+            background: rgba(0, 0, 0, 0.7);
+            color: #2ecc71;
+            border: 2px solid #2ecc71;
+            padding: 10px 15px;
+            cursor: pointer;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 13px;
+            text-transform: uppercase;
+            transition: 0.3s;
+        }
+
+        .btn-canal.active {
+            background: #2ecc71;
+            color: #000;
+        }
+
+        /* Player centralizado e responsivo[span_2](start_span)[span_2](end_span) */
+        .wrapper-player {
+            width: 100%;
+            max-width: 450px; /* Largura ideal para celular no centro */
+            aspect-ratio: 16 / 9;
+            background: #000;
+            border: 2px solid #333;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 0 40px rgba(0,0,0,0.8);
+        }
+
+        iframe { width: 100%; height: 100%; border: none; }
+    </style>
+</head>
+<body>
+
+    <!-- Fundo Animado -->
+    <video autoplay muted loop playsinline class="video-fundo">
+        <source src="https://cdn.pixabay.com/video/2021/12/07/99952-654330991_large.mp4" type="video/mp4">
+    </video>
+
+    <div class="container">
+        <!-- Botões de canais gerados automaticamente -->
+        <div id="menu-canais"></div>
+
+        <!-- Player centralizado -->
+        <div class="wrapper-player" id="player-container">
+            <p style="color:white; text-align:center; margin-top:20%;">Carregando Canais...</p>
+        </div>
+    </div>
+
+    <script>
+        // Link Dropbox direto[span_3](start_span)[span_3](end_span)
+        const dbLink = "https://dl.dropboxusercontent.com/scl/fi/vrth4dw3vwf0fbi1r4lfv/jogosao9vivo.txt?rlkey=bdhc2l2sn5muvywoze51rljun&st=ct05c4rf&dl=1";
+        const proxy = "https://api.allorigins.win/get?url=" + encodeURIComponent(dbLink);
+
+        function extrairId(url) {
+            const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=|live\/)|youtu\.be\/)([^"&?\/\s]{11})/;
+            const match = url.match(regex);
+            return (match && match[1]) ? match[1] : null;
+        }
+
+        function play(id, btn) {
+            // mute=1 permite o Autoplay iniciar sozinho no celular[span_4](start_span)[span_4](end_span)
+            const embedUrl = `https://www.youtube.com/embed/${id}?autoplay=1&mute=1&rel=0&modestbranding=1&playsinline=1`;
+            document.getElementById('player-container').innerHTML = 
+                `<iframe src="${embedUrl}" allow="autoplay; encrypted-media; fullscreen" allowfullscreen></iframe>`;
+            
+            document.querySelectorAll('.btn-canal').forEach(b => b.classList.remove('active'));
+            if(btn) btn.classList.add('active');
+        }
+
+        async function sincronizar() {
+            try {
+                const response = await fetch(proxy + "&t=" + Date.now());
+                const data = await response.json();
+                const linhas = data.contents.split('\n');
+                const menu = document.getElementById('menu-canais');
+                menu.innerHTML = "";
+
+                let count = 1;
+                linhas.forEach(linha => {
+                    if (linha.includes("http")) {
+                        const videoId = extrairId(linha.trim());
+                        if (videoId) {
+                            const btn = document.createElement('button');
+                            btn.className = 'btn-canal';
+                            btn.innerText = `CANAL ${count}`;
+                            btn.onclick = function() { play(videoId, this); };
+                            menu.appendChild(btn);
+
+                            // Inicia o primeiro canal automaticamente[span_5](start_span)[span_5](end_span)
+                            if (count === 1) play(videoId, btn);
+                            count++;
+                        }
+                    }
+                });
+            } catch (e) {
+                console.error("Erro ao carregar lista");
+            }
+        }
+
+        sincronizar();
+    </script>
+</body>
+</html>
