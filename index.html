@@ -1,146 +1,345 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gerenciador de Player Pro</title>
-    <style>
-        /* Estilos do Painel de Controle e Layout */
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #111;
-            color: #fff;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sport Live 2.0 — TV & Esports ao Vivo</title>
 
-        h2 {
-            margin-bottom: 5px;
-            color: #E50914;
-        }
+    <meta
+      name="description"
+      content="Player esportivo com canais, busca, playlist M3U personalizada, botão Telegram e suporte PWA."
+    />
 
-        /* Caixa do Gerenciador */
-        .gerenciador-box {
-            background-color: #1c1c1c;
-            padding: 15px 25px;
-            border-radius: 8px;
-            margin-bottom: 25px;
-            width: 100%;
-            max-width: 750px;
-            box-sizing: border-box;
-            border: 1px solid #333;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
+    <meta name="theme-color" content="#0a0a1a" />
 
-        .url-fixa-label {
-            font-size: 12px;
-            color: #888;
-        }
+    <link rel="icon" type="image/png" href="./app-icon.png" />
+    <link rel="apple-touch-icon" href="./app-icon.png" />
+    <link rel="manifest" href="./manifest.webmanifest" />
 
-        .input-group {
-            display: flex;
-            gap: 10px;
-        }
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
 
-        input[type="text"] {
-            flex: 1;
-            padding: 12px;
-            border: 1px solid #444;
-            background-color: #000;
-            color: #fff;
-            border-radius: 4px;
-            font-size: 16px;
-            outline: none;
-        }
+    <link rel="stylesheet" href="./assets/css/theme.css" />
+    <link rel="stylesheet" href="./assets/css/app.css" />
+  </head>
 
-        input[type="text"]:focus {
-            border-color: #E50914;
-        }
+  <body>
+    <div class="page-shell"></div>
 
-        button {
-            background-color: #E50914;
-            color: white;
-            border: none;
-            padding: 0 25px;
-            font-size: 15px;
-            font-weight: bold;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
+    <header class="topbar container">
+      <a class="brand" href="#inicio" aria-label="Voltar ao topo">
+        <img
+          src="./assets/img/logo.png"
+          alt="Logo Sport Live 2.0"
+          class="brand__logo"
+        />
 
-        button:hover {
-            background-color: #b81d24;
-        }
-
-        /* Container do Player de Vídeo */
-        .video-container {
-            position: relative;
-            width: 100%;
-            max-width: 800px;
-            aspect-ratio: 16 / 9;
-            background-color: #000;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
-            border: 1px solid #222;
-        }
-
-        .video-container iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
-    </style>
-</head>
-<body>
-
-    <h2>Gerenciador de Conteúdo</h2>
-    <p style="color: #aaa; margin-top: 0; margin-bottom: 20px;">Insira o ID para alterar o player em tempo real</p>
-
-    <!-- Painel do Gerenciador -->
-    <div class="gerenciador-box">
-        <span class="url-fixa-label">URL Base ativa: <strong>https://player.videasy.net/movie/</strong></span>
-        <div class="input-group">
-            <input type="text" id="idConteudo" placeholder="Cole aqui o ID do filme (Ex: 299534)" value="299534">
-            <button onclick="carregarConteudo()">Atualizar Player</button>
+        <div>
+          <p class="eyebrow">SPORT LIVE 2.0</p>
+          <h1>TV & Esports ao Vivo</h1>
         </div>
-    </div>
+      </a>
 
-    <!-- Container do Vídeo -->
-    <div class="video-container">
-        <iframe id="playerVideo" allowfullscreen></iframe>
-    </div>
+      <div class="topbar__actions">
+        <button id="install-app-btn" class="btn btn-secondary" hidden>
+          Instalar app
+        </button>
 
+        <a
+          class="btn btn-primary"
+          href="https://t.me/sportlivepremium"
+          target="_blank"
+          rel="noreferrer"
+        >
+          Entrar no grupo
+        </a>
+      </div>
+    </header>
+
+    <main class="container main-grid" id="inicio">
+
+      <section class="hero card card--glow">
+        <div class="hero__header">
+
+          <div>
+            <p class="eyebrow">Transmissão principal</p>
+
+            <h2 id="current-channel-title">
+              Carregando canal...
+            </h2>
+
+            <p id="current-channel-meta" class="muted">
+              Selecione um canal para começar
+            </p>
+          </div>
+
+          <div
+            id="player-status"
+            class="status-badge status-badge--loading"
+          >
+            Conectando
+          </div>
+
+        </div>
+
+        <div class="player-frame">
+          <video
+            id="player"
+            controls
+            autoplay
+            playsinline
+          ></video>
+
+          <button
+            id="retry-play-btn"
+            class="player-retry"
+            type="button"
+          >
+            Tentar novamente
+          </button>
+        </div>
+
+        <div class="hero__footer">
+
+          <div class="chip-row">
+            <span class="chip">Busca rápida</span>
+            <span class="chip">M3U personalizada</span>
+            <span class="chip">PWA pronta</span>
+          </div>
+
+          <p class="note">
+            Dica: se a URL M3U bloquear no navegador,
+            use o campo de texto ou arquivo e cole o conteúdo da playlist.
+          </p>
+
+        </div>
+      </section>
+
+      <aside class="sidebar">
+
+        <section class="card stats-card">
+
+          <div class="section-title-row">
+            <div>
+              <p class="eyebrow">Audiência local</p>
+              <h3>Resumo do navegador</h3>
+            </div>
+          </div>
+
+          <div class="stats-grid">
+
+            <article class="stat-box">
+              <span>Total</span>
+              <strong id="stat-total">0</strong>
+            </article>
+
+            <article class="stat-box">
+              <span>Últimos 7 dias</span>
+              <strong id="stat-last7">0</strong>
+            </article>
+
+            <article class="stat-box">
+              <span>Hoje</span>
+              <strong id="stat-today">0</strong>
+            </article>
+
+          </div>
+
+          <p class="note">
+            Estes números são locais, ideais para protótipo sem backend.
+          </p>
+
+        </section>
+
+        <section class="card playlist-card">
+
+          <div class="section-title-row">
+            <div>
+              <p class="eyebrow">Sua playlist</p>
+              <h3>Importar M3U</h3>
+            </div>
+          </div>
+
+          <label class="field-label" for="playlist-url">
+            URL da playlist
+          </label>
+
+          <div class="inline-form">
+
+            <input
+              id="playlist-url"
+              type="url"
+              placeholder="https://exemplo.com/lista.m3u"
+            />
+
+            <button
+              id="load-url-btn"
+              class="btn btn-secondary"
+              type="button"
+            >
+              Carregar
+            </button>
+
+          </div>
+
+          <label class="field-label" for="playlist-text">
+            Ou cole o conteúdo M3U
+          </label>
+
+          <textarea
+            id="playlist-text"
+            rows="8"
+            placeholder="#EXTM3U&#10;#EXTINF:-1,Canal Exemplo&#10;https://.../stream.m3u8"
+          ></textarea>
+
+          <div class="playlist-actions">
+
+            <button
+              id="load-text-btn"
+              class="btn btn-primary"
+              type="button"
+            >
+              Usar texto
+            </button>
+
+            <label class="btn btn-ghost file-btn">
+              Selecionar arquivo
+
+              <input
+                id="playlist-file"
+                type="file"
+                accept=".m3u,.txt"
+                hidden
+              />
+            </label>
+
+            <button
+              id="clear-custom-btn"
+              class="btn btn-ghost"
+              type="button"
+            >
+              Limpar personalizada
+            </button>
+
+          </div>
+        </section>
+      </aside>
+
+      <section class="card channels-card channels-card--wide">
+
+        <div class="section-title-row section-title-row--stack-mobile">
+
+          <div>
+            <p class="eyebrow">Canais & conteúdo</p>
+            <h3>Grade disponível</h3>
+          </div>
+
+          <div class="toolbar">
+
+            <input
+              id="channel-search"
+              type="search"
+              placeholder="Buscar por nome, categoria ou origem"
+            />
+
+            <span id="channel-count" class="counter-pill">
+              0 canais
+            </span>
+
+          </div>
+
+        </div>
+
+        <div id="channels-empty" class="empty-state" hidden>
+          Nenhum canal encontrado para o filtro atual.
+        </div>
+
+        <div id="channels-list" class="channels-grid"></div>
+
+      </section>
+
+      <section class="card partners-card">
+
+        <div class="section-title-row">
+          <div>
+            <p class="eyebrow">Campeonatos & parceiros</p>
+            <h3>Destaques do layout</h3>
+          </div>
+        </div>
+
+        <div
+          id="championships-list"
+          class="championships-grid"
+        ></div>
+
+      </section>
+
+    </main>
+
+    <footer class="container footer">
+      <p>
+        Sport Live 2.0 refeito com layout premium,
+        player HLS e estrutura modular.
+      </p>
+
+      <p class="muted">
+        Substitua textos, links, canais e branding conforme o seu uso.
+      </p>
+    </footer>
+
+    <div id="toast" class="toast" aria-live="polite"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+
+    <!-- DROPBOX AUTO UPDATE -->
     <script>
-        // CONFIGURAÇÃO: Sua URL base fica protegida e fixa aqui
-        const URL_BASE = "https://player.videasy.net/movie/";
+      const DROPBOX_PLAYLIST =
+        "https://dl.dropbox.com/scl/fi/at4plqzgy3lb2mhg46xox/HOTSEX.txt?rlkey=6h00qnegtc3csrtx8poy28yfo&st=b3kwql3r&dl=1";
 
-        // FUNÇÃO GERENCIADORA: Faz a somatória da URL fixa + ID informado
-        function carregarConteudo() {
-            const inputId = document.getElementById('idConteudo').value.trim();
-            const iframe = document.getElementById('playerVideo');
+      async function carregarDropboxAutomatico() {
+        try {
+          const resposta = await fetch(DROPBOX_PLAYLIST);
+          const conteudo = await resposta.text();
 
-            if (inputId !== "") {
-                // Soma (concatena) a URL fixa com o ID digitado
-                iframe.src = URL_BASE + inputId;
-            } else {
-                alert("Por favor, digite um ID válido!");
-            }
+          const textarea =
+            document.getElementById("playlist-text");
+
+          if (textarea) {
+            textarea.value = conteudo;
+          }
+
+          const btn =
+            document.getElementById("load-text-btn");
+
+          if (btn) {
+            btn.click();
+          }
+
+          console.log(
+            "Playlist Dropbox atualizada automaticamente"
+          );
+        } catch (erro) {
+          console.error(
+            "Erro ao carregar Dropbox:",
+            erro
+          );
         }
+      }
 
-        // Executa automaticamente ao abrir a página usando o ID inicial do input
-        window.onload = carregarConteudo;
+      window.addEventListener(
+        "DOMContentLoaded",
+        () => {
+          carregarDropboxAutomatico();
+
+          // Atualiza a cada 5 minutos
+          setInterval(
+            carregarDropboxAutomatico,
+            300000
+          );
+        }
+      );
     </script>
 
-</body>
-</html>
+    <script type="module" src="./assets/js/app.js"></script>
 
+  </body>
+</html>
